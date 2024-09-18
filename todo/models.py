@@ -8,6 +8,8 @@ from rest_framework.exceptions import ValidationError
 User= get_user_model()
 
 
+
+
 class TaskModel(models.Model):
     title= models.CharField(max_length=100, blank=False, null=False)
     task_color= models.CharField(max_length=10, blank=False, null = False)
@@ -25,10 +27,14 @@ class TaskModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_tasks")
     icon_code= models.ForeignKey(IconsModel, to_field='icon_code', on_delete=models.SET_NULL, null=True)
     category = models.ForeignKey(CategoryModel,on_delete=models.SET_NULL,null=True)
+    reminder_note = models.CharField(max_length= 100, blank=True, null=False)
+    is_reminder=models.BooleanField(default=False)
+    reminder_time= models.TimeField(blank=False, null=True)
+    parent_id= models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child')
+    is_long_task= models.BooleanField(default=False)
     '''
-    category
+    
     repition
-    reminder with note
     parent tasks
     steps
 
@@ -36,12 +42,35 @@ class TaskModel(models.Model):
     completion rate
     iscompleted
 
+    icon code automate 
+    validation task past part update
+
     '''
     def save(self, *args, **kwargs):
         # Ensure that the category is of type 'task'
         if self.category and self.category.type != CategoryType.TASK:
             raise ValidationError('Tasks can only be linked to categories of type "Task".')
         super().save(*args, **kwargs)
+
+        # After saving, check if there are child tasks
+        if not self.parent_id and self.child.exists():  # Task has no parent and has children
+            TaskModel.objects.filter(id=self.id).update(is_long_task=True)
+        else:
+            TaskModel.objects.filter(id=self.id).update(is_long_task=False)
+
+    def __str__(self):
+        return self.title
+
+
+class TaskSteps(models.Model):
+    title = models.CharField(max_length=255, blank=False)
+    is_completed = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(null=False)
+    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)  
+    
+
+    class Meta:
+        ordering = ['order']  
 
     def __str__(self):
         return self.title

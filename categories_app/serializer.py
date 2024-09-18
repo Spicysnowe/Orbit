@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import GlobalCategoryModel,CategoryModel
-
+from icon_app.serializer import IconSerializer
 class GlobalCategorySerializer(serializers.ModelSerializer):
     subcategories = serializers.SerializerMethodField()
 
@@ -40,10 +40,25 @@ class CategorySerializer(serializers.ModelSerializer):
 # Serializer for listing only top-level categories (those without a parent)
 class RootCategorySerializer(serializers.ModelSerializer):
     subcategories = serializers.SerializerMethodField()
+    icon_detail= IconSerializer(read_only= True)
 
     class Meta:
         model = CategoryModel
-        fields = ['id', 'title', 'type', 'color', 'icon_code', 'is_custom','parent', 'subcategories']
+        fields = ['id', 'title', 'type', 'color', 'icon_code', 'is_custom','parent', 'subcategories', 'icon_detail']
+    
+    def __init__(self, *args, **kwargs):
+        # Initialize the serializer with request context
+        request = kwargs.get('context', {}).get('request', None)
+        super().__init__(*args, **kwargs)
+        
+        # Exclude the `category_id` field for GET requests
+        if request and request.method == 'GET':
+            self.fields.pop('icon_code')
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['icon_detail']= IconSerializer(instance.icon_code).data
+        return representation
     
     def validate(self, data):
         if not self.partial:
