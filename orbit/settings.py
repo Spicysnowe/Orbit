@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'user_app',
     'todo',
     'icon_app',
-    'categories_app'
+    'categories_app',
+    'base_app'
 ]
 
 MIDDLEWARE = [
@@ -135,7 +136,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
+USE_TZ = True
 
 USE_I18N = True
 

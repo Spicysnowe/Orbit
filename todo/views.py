@@ -21,18 +21,18 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
 
         if  is_task_unstructured is True:
-            return TaskModel.objects.filter(user=user,is_active=True, is_unstructured= True).order_by('start_date__isnull','start_date','start_time__isnull','start_time')
+            return TaskModel.objects.filter(user=user,is_active=True, is_unstructured= True).order_by('start_date__isnull','start_date','begin_time__isnull','begin_time')
         elif  is_task_unstructured is False:
             if task_date:
                 try:                
                     task_date = datetime.strptime(task_date, '%Y-%m-%d').date()
                 except ValueError:
                     raise ValidationError({"message": "You are retrieving structured tasks" ,"date": "Date format should be YYYY-MM-DD"})
-            return TaskModel.objects.filter(user=user,is_active=True, is_unstructured= False, start_date__lte=task_date,end_date__gte=task_date ).order_by('start_time')
+            return TaskModel.objects.filter(user=user,is_active=True, is_unstructured= False, start_date__lte=task_date,end_date__gte=task_date ).order_by('begin_time')
         else:
             # all task of authenticted user
             # without filtering by unstructured, active, date, time
-            return TaskModel.objects.filter(user=user).order_by('start_date').order_by('start_time')
+            return TaskModel.objects.filter(user=user).order_by('start_date').order_by('begin_time')
 
         
 
